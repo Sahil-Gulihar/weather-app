@@ -11,27 +11,40 @@ function App() {
 
   useEffect(() => {
     // Get user's location on component mount
+    const fetchWeatherByLocation = async (position) => {
+      try {
+        setLoading(true);
+        const data = await getWeatherByCoords(
+          position.coords.latitude,
+          position.coords.longitude
+        );
+        setWeather(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch weather data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchDefaultCity = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getWeatherByCity('London');
+        setWeather(data);
+      } catch (err) {
+        setError('City not found. Please try again.');
+        setWeather(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            setLoading(true);
-            const data = await getWeatherByCoords(
-              position.coords.latitude,
-              position.coords.longitude
-            );
-            setWeather(data);
-            setError(null);
-          } catch (err) {
-            setError('Failed to fetch weather data');
-          } finally {
-            setLoading(false);
-          }
-        },
-        () => {
-          // If user denies location, load default city
-          handleSearch('London');
-        }
+        fetchWeatherByLocation,
+        fetchDefaultCity
       );
     }
   }, []);
